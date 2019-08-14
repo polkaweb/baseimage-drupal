@@ -15,42 +15,28 @@ RUN set -xe \
     && chmod +x /usr/local/bin/drush
 
 
-FROM php:7.1-apache
-
-ARG DEBIAN_FRONTEND=noninteractive
+FROM php:7.2-apache-stretch
 
 RUN a2enmod rewrite \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-      libc-client-dev \
       libfreetype6-dev \
-      libjpeg62-turbo-dev \
-      libkrb5-dev \
-      libmcrypt-dev \
+      libjpeg-dev \
       libpng-dev \
-      libyaml-dev \
+      libpq-dev \
+      libzip-dev \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd \
-      --with-freetype-dir=/usr/include/ \
-      --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-configure imap \
-      --with-kerberos \
-      --with-imap-ssl \
+      --with-freetype-dir=/usr \
+      --with-jpeg-dir=/usr \
+      --with-png-dir=/usr \
     && docker-php-ext-install -j$(nproc) \
       gd \
-      iconv \
-      imap \
-      mbstring \
-      mcrypt \
+      opcache \
       pdo \
       pdo_mysql \
       zip \
-    && pecl install \
-      xdebug \
-      yaml \
-    && docker-php-ext-enable \
-      xdebug \
-      yaml
+    && rm -Rf /tmp/*
 
 # Copy drush
 COPY --from=builder /usr/local/bin/drush /usr/local/bin/drush
@@ -64,12 +50,19 @@ RUN apt-get update \
       mariadb-client \
       nano \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -Rf /tmp/* \
-    && chown -Rf www-data: /var/www/html
+    && rm -Rf /tmp/*
+
+WORKDIR /var/www/html
+
+ENV DRUPAL_VERSION 7.67
+ENV DRUPAL_MD5 78b1814e55fdaf40e753fd523d059f8d
+
+RUN set -eux \
+    && curl -fSL "https://ftp.drupal.org/files/projects/drupal-${DRUPAL_VERSION}.tar.gz" -o drupal.tar.gz \
+    && echo "${DRUPAL_MD5} *drupal.tar.gz" | md5sum -c - \
+    && tar -xz --strip-components=1 -f drupal.tar.gz \
+    && rm drupal.tar.gz \
+    && chown -R www-data:www-data sites modules themes
 
 # Copy configuration overrides.
 COPY *.ini /usr/local/etc/php/conf.d/
-
-EXPOSE 9000
-
-WORKDIR /var/www/html
