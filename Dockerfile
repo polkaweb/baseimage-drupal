@@ -21,6 +21,7 @@ RUN curl --silent --fail --location --retry 3 --output /tmp/installer.php --url 
 
 # Add utils.
 RUN apt-get update && apt-get install -y \
+    mariadb-client \
     nano \
     unzip \
  && rm -rf /var/lib/apt/lists/*
