@@ -1,12 +1,22 @@
 FROM drupal:7.67
 
 # Install Memcached for php 7
-RUN curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
-    && mkdir -p /usr/src/php/ext/memcached \
-    && tar -C /usr/src/php/ext/memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
-    && docker-php-ext-configure memcached \
-    && docker-php-ext-install memcached \
-    && rm /tmp/memcached.tar.gz
+RUN apt-get update && apt-get install -y \
+    libmemcached11 \
+    libmemcachedutil2 \
+    libmemcached-dev \
+    libz-dev \
+ && curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
+ && mkdir -p /usr/src/php/ext/memcached \
+ && tar -C /usr/src/php/ext/memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
+ && docker-php-ext-configure memcached \
+ && docker-php-ext-install memcached \
+ && rm /tmp/memcached.tar.gz \
+ && apt-get remove -y build-essential libmemcached-dev libz-dev \ 
+ && apt-get remove -y libmemcached-dev libz-dev \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
     
 # Add composer.
 ENV COMPOSER_VERSION 1.8.6
