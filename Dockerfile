@@ -18,6 +18,18 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
     
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    git \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean \
+ && curl -Lsf 'https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz' | tar -C '/usr/local' -xvzf -
+
+ENV PATH /usr/local/go/bin:$PATH
+RUN go get github.com/mailhog/mhsendmail \
+ && cp /root/go/bin/mhsendmail /usr/bin/mhsendmail
+
 # Add composer.
 ENV COMPOSER_VERSION 1.8.6
 ENV COMPOSER_ALLOW_SUPERUSER 1
