@@ -1,22 +1,11 @@
-FROM drupal:7.67
+FROM drupal:7.69
 
 # Install Memcached for php 7
 RUN apt-get update && apt-get install -y \
-    libmemcached11 \
-    libmemcachedutil2 \
-    libmemcached-dev \
-    libz-dev \
- && curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
- && mkdir -p /usr/src/php/ext/memcached \
- && tar -C /usr/src/php/ext/memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
- && docker-php-ext-configure memcached \
- && docker-php-ext-install memcached \
- && rm /tmp/memcached.tar.gz \
- && apt-get remove -y build-essential libmemcached-dev libz-dev \ 
- && apt-get remove -y libmemcached-dev libz-dev \
- && apt-get autoremove -y \
+     zlib1g-dev \    
  && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && pecl install memcache \
+ && docker-php-ext-enable memcache
     
 RUN apt-get update && apt-get install -y \
     ca-certificates \
@@ -31,13 +20,13 @@ RUN go get github.com/mailhog/mhsendmail \
  && cp /root/go/bin/mhsendmail /usr/bin/mhsendmail
 
 # Add composer.
-ENV COMPOSER_VERSION 1.8.6
+ENV COMPOSER_VERSION 1.10.0
 ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV COMPOSER_HOME /tmp
 ENV PATH "/${COMPOSER_HOME}/vendor/bin:${PATH}"
-RUN curl --silent --fail --location --retry 3 --output /tmp/installer.php --url https://raw.githubusercontent.com/composer/getcomposer.org/cb19f2aa3aeaa2006c0cd69a7ef011eb31463067/web/installer \
+RUN curl --silent --fail --location --retry 3 --output /tmp/installer.php --url https://raw.githubusercontent.com/composer/getcomposer.org/d2c7283f9a7df2db2ab64097a047aae780b8f6b7/web/installer \
  && php -r " \
-    \$signature = '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5'; \
+    \$signature = 'e0012edf3e80b6978849f5eff0d4b4e4c79ff1609dd1e613307e16318854d24ae64f26d17af3ef0bf7cfb710ca74755a'; \
     \$hash = hash('sha384', file_get_contents('/tmp/installer.php')); \
     if (!hash_equals(\$signature, \$hash)) { \
       unlink('/tmp/installer.php'); \
