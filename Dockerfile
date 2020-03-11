@@ -1,4 +1,4 @@
-FROM drupal:7.69
+FROM drupal:7.68
 
 # Install Memcached for php 7
 RUN apt-get update && apt-get install -y \
