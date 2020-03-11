@@ -6,6 +6,13 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/* \
  && pecl install memcache \
  && docker-php-ext-enable memcache
+
+# Install mcrypt for php 7
+RUN apt-get update && apt-get install -y \
+     libmcrypt-dev \    
+ && rm -rf /var/lib/apt/lists/* \
+ && pecl install mcrypt-1.0.1 \
+ && docker-php-ext-enable mcrypt
     
 RUN apt-get update && apt-get install -y \
     ca-certificates \
